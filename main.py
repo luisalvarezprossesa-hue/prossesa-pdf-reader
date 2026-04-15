@@ -9,7 +9,21 @@ client = anthropic.Anthropic()
 def leer_pdf():
     data = request.json
     pdf_base64 = data.get('pdf_base64')
+    lista_trabajadores = data.get('lista_trabajadores', '')
     
+    prompt = f"""Analiza esta lista de asistencia y extrae los trabajadores presentes.
+
+Lista maestra de trabajadores (nombre y gafete):
+{lista_trabajadores}
+
+Instrucciones:
+1. Lee los nombres y gafetes del PDF
+2. Compara con la lista maestra usando similitud de nombre O gafete
+3. Devuelve SOLO JSON con este formato exacto, sin explicaciones:
+[{{"gafete": "12345", "nombre": "NOMBRE COMPLETO", "dia": "10"}}]
+
+El campo "dia" es el día del mes que aparece en la fecha del documento."""
+
     message = client.messages.create(
         model="claude-sonnet-4-5",
         max_tokens=1024,
@@ -26,7 +40,7 @@ def leer_pdf():
                 },
                 {
                     "type": "text",
-                    "text": "Extrae todos los nombres, números de gafete y área de esta lista de asistencia. Devuelve solo JSON: [{\"nombre\":\"...\",\"gafete\":\"...\",\"area\":\"...\"}]"
+                    "text": prompt
                 }
             ]
         }]
